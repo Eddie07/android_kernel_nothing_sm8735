@@ -52,6 +52,11 @@
 #define KEY_GESTURE_C                           KEY_C
 #define KEY_GESTURE_Z                           KEY_Z
 #define KEY_GESTURE_CLICK                       KEY_WAKEUP
+
+#ifndef KEY_GESTURE_DOUBLECLICK
+#define KEY_GESTURE_DOUBLECLICK                 KEY_WAKEUP
+#endif
+
 #define KEY_GESTURE_FOD                         249
 #define KEY_PALM_TO_SLEEP                       252
 
@@ -86,6 +91,13 @@ struct fts_gesture_st fts_gesture_data;
 /*****************************************************************************
 * Static function prototypes
 *****************************************************************************/
+
+#define DOUBLE_CLICK_DETECT_DELAY (msecs_to_jiffies(500))
+
+static unsigned long last_touch_jiffies = 0;
+static bool last_was_single_click = false;
+
+
 static ssize_t fts_gesture_show(
     struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -298,7 +310,7 @@ static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
         gesture = KEY_GESTURE_DOWN;
         break;
     case GESTURE_DOUBLECLICK:
-        gesture = KEY_GESTURE_U;
+        gesture = KEY_GESTURE_DOUBLECLICK;
         break;
     case GESTURE_O:
         gesture = KEY_GESTURE_O;
@@ -324,12 +336,12 @@ static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
     case GESTURE_Z:
         gesture = KEY_GESTURE_Z;
         break;
-    case  GESTURE_C:
+    case GESTURE_C:
         gesture = KEY_GESTURE_C;
         break;
     case GESTURE_SINGLECLICK:
-        gesture = KEY_GESTURE_CLICK;
-        break;
+        //gesture = KEY_GESTURE_CLICK;
+        //break;
     default:
         gesture = -1;
         break;
@@ -363,6 +375,8 @@ int fts_gesture_readdata(struct fts_ts_data *ts_data, u8 *touch_buf)
     int ret = 0;
     int i = 0;
     int index = 0;
+    long now = jiffies;
+
     u8 buf[FTS_GESTURE_DATA_LEN] = { 0 };
     u8 gesture_en = 0xFF;
     struct input_dev *input_dev = ts_data->input_dev;
@@ -402,6 +416,20 @@ int fts_gesture_readdata(struct fts_ts_data *ts_data, u8 *touch_buf)
         gesture->coordinate_y[i] = (u16)(((buf[2 + index]) << 8)
                                          + buf[3 + index]);
     }
+
+    if (gesture->gesture_id == GESTURE_SINGLECLICK) {
+        if (last_was_single_click &&
+            (now - last_touch_jiffies) < DOUBLE_CLICK_DETECT_DELAY) {
+            gesture->gesture_id = GESTURE_DOUBLECLICK;
+            FTS_DEBUG("double click detected, gesture_id=%d, point_num=%d ",
+              gesture->gesture_id, gesture->point_num);
+        }
+        last_was_single_click = true;
+    } else {
+        last_was_single_click = false;
+    }
+
+    last_touch_jiffies = now;
 
     /* report gesture to OS */
     fts_gesture_report(input_dev, gesture->gesture_id);
