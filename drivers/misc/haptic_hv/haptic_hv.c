@@ -4517,7 +4517,11 @@ static int vibrator_init(struct aw_haptic *aw_haptic)
 	if (!ret)
 		aw_haptic->vib_dev.name = "vibrator_r";
 #else
+#if IS_ENABLED(CONFIG_METROID_LINEAGE)
+	aw_haptic->vib_dev.name = "vibrator";
+else
 	aw_haptic->vib_dev.name = "vibrator_nt";
+#endif /* IS_ENABLED(CONFIG_METROID_LINEAGE) */
 #endif
 	aw_haptic->vib_dev.get_time = vibrator_get_time;
 	aw_haptic->vib_dev.enable = vibrator_enable;
@@ -4542,12 +4546,17 @@ static int vibrator_init(struct aw_haptic *aw_haptic)
 	if (!ret)
 		aw_haptic->vib_dev.name = "vibrator_r";
 #else
+#if IS_ENABLED(CONFIG_METROID_LINEAGE)
+	aw_haptic->vib_dev.name = "vibrator";
+#else
 #ifdef KERNEL_OVER_5_10
 	aw_haptic->vib_dev.name = "vibrator_nt";
 #else
 	aw_haptic->vib_dev.name = "vibrator_nt";
 #endif
-#endif
+	aw_haptic->vib_dev.name = "vibrator";
+#endif /* KERNEL_OVER_5_10 */
+#endif /* IS_ENABLED(CONFIG_METROID_LINEAGE) */
 	aw_haptic->vib_dev.brightness_get = brightness_get;
 	aw_haptic->vib_dev.brightness_set = brightness_set;
 	ret = devm_led_classdev_register(&aw_haptic->i2c->dev, &aw_haptic->vib_dev);
