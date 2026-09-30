@@ -1286,6 +1286,10 @@ config NOTHING_IS_FROGGERPRO
 	bool "Determine if FroggerPro project"
 	default n
 
+config METROID_LINEAGE
+	bool "Fix stock kernel deps"
+	default n
+
 config QTI_HW_KEY_MANAGER_V1
 	tristate "Enable QTI Hardware Key Manager v1 for storage encryption"
 	default n
