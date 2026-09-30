@@ -371,4 +371,23 @@ endif
 
 always-y        := $(dtb-y)
 subdir-y        := $(dts-dirs)
+ifeq ($(CONFIG_NOTHING_IS_METROID), y)
+subdir-y += \
+    audio-devicetree \
+    bt-devicetree \
+    camera-devicetree \
+    data-devicetree \
+    display-devicetree \
+    dsp-devicetree \
+    eSE-devicetree \
+    eva-devicetree \
+    graphics-devicetree \
+    mm-devicetree \
+    mmrm-devicetree \
+    mm-sys-devicetree \
+    nfc-devicetree \
+    synx-devicetree \
+    video-devicetree \
+    wlan-devicetree
+endif
 clean-files     := *.dtb *.dtbo
